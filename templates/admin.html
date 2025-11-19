@@ -1,0 +1,63 @@
+<!-- templates/admin.html -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Events Admin</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+<div class="container">
+  <h3>Events Admin</h3>
+  <p>Note: keep this page private. Use ?pw=YOUR_PASSWORD to access.</p>
+
+  <h5>Create event</h5>
+  <form method="post" action="/create">
+    <input type="hidden" name="pw" value="{{ request.args.get('pw','') }}">
+    <div class="mb-2">
+      <input class="form-control" name="name" placeholder="Event name (optional)">
+    </div>
+    <div class="mb-2">
+      <label>Event datetime (YYYY-MM-DD HH:MM)</label>
+      <input class="form-control" name="event_datetime" placeholder="2025-11-21 16:30">
+    </div>
+    <div class="mb-2">
+      <label>Publish datetime (when to push to WP) (YYYY-MM-DD HH:MM)</label>
+      <input class="form-control" name="publish_datetime" placeholder="2025-11-19 16:29">
+    </div>
+    <div class="mb-2">
+      <label>Display text (exact text to show on site)</label>
+      <input class="form-control" name="display_text" placeholder="Next batch: 21 Nov 4:30 PM IST">
+    </div>
+    <div class="mb-2">
+      <label>Deadline (for countdown) (YYYY-MM-DD HH:MM:SS)</label>
+      <input class="form-control" name="deadline" placeholder="2025-11-21 16:30:00">
+    </div>
+    <button class="btn btn-success">Create event</button>
+  </form>
+
+  <hr>
+  <h5>Upcoming events</h5>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-info">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+  <table class="table">
+    <thead><tr><th>ID</th><th>Name</th><th>Event DT</th><th>Publish DT</th><th>Sent</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for e in events %}
+      <tr>
+        <td>{{ e.id }}</td>
+        <td>{{ e.name }}</td>
+        <td>{{ e.event_datetime }}</td>
+        <td>{{ e.publish_datetime }}</td>
+        <td>{{ 'Yes' if e.sent else 'No' }}</td>
+        <td>
+          <a class="btn btn-sm btn-danger" href="/delete/{{ e.id }}?pw={{ request.args.get('pw','') }}">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
