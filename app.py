@@ -52,21 +52,23 @@ def send_to_wordpress(text, deadline=None):
         return False, str(e)
 
 def scheduler_loop():
-    print("Scheduler started, checking every", CHECK_INTERVAL, "seconds")
-    while True:
-        now = datetime.now()
-        events = Event.query.filter_by(sent=False).all()
-        for ev in events:
-            pd = parse_dt(ev.publish_datetime)
-            if pd and pd <= now:
-                ok, resp = send_to_wordpress(ev.display_text, ev.deadline)
-                if ok:
-                    ev.sent = True
-                    db.session.commit()
-                    print(f"Sent event {ev.id} at {now}")
-                else:
-                    print("Failed to send event", ev.id, resp)
-        time.sleep(CHECK_INTERVAL)
+    # Run all DB code inside app context
+    with app.app_context():
+        print("Scheduler started, checking every", CHECK_INTERVAL, "seconds")
+        while True:
+            now = datetime.now()
+            events = Event.query.filter_by(sent=False).all()
+            for ev in events:
+                pd = parse_dt(ev.publish_datetime)
+                if pd and pd <= now:
+                    ok, resp = send_to_wordpress(ev.display_text, ev.deadline)
+                    if ok:
+                        ev.sent = True
+                        db.session.commit()
+                        print(f"Sent event {ev.id} at {now}")
+                    else:
+                        print("Failed to send event", ev.id, resp)
+            time.sleep(CHECK_INTERVAL)
 
 @app.route("/")
 def index():
